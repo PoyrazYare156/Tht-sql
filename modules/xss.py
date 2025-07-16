@@ -1,5 +1,21 @@
 
+import requests
+
 def scan_xss(url):
-    if "<script>" in url or "alert(" in url:
-        return {"status": "vulnerable", "payload": "basic script injection"}
-    return {"status": "safe"}
+    xss_payload = "<script>alert(1)</script>"
+    test_url = f"{url}?test={xss_payload}"
+
+    try:
+        response = requests.get(test_url, timeout=5)
+        if xss_payload in response.text:
+            return {
+                "status": "vulnerable",
+                "explanation": "XSS açığı tespit edildi."
+            }
+    except requests.RequestException:
+        pass
+
+    return {
+        "status": "safe",
+        "explanation": "XSS açığına karşı güvenli."
+    }
