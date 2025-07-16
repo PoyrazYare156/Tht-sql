@@ -4,14 +4,14 @@ from fastapi.responses import JSONResponse
 from starlette.templating import Jinja2Templates
 import uvicorn
 
-from sql_injection import scan_sql_injection
-from xss import scan_xss
-from waf_detect import detect_waf
-from open_redirect import check_open_redirect
-from cors_check import check_cors
-from ssl_check import check_ssl
-from tech_detect import detect_tech
-from clickjacking import check_clickjacking
+from vuln_modules.sql_injection import scan_sql_injection
+from vuln_modules.xss import scan_xss
+from vuln_modules.waf_detect import detect_waf
+from vuln_modules.open_redirect import check_open_redirect
+from vuln_modules.cors_check import check_cors
+from vuln_modules.ssl_check import check_ssl
+from vuln_modules.tech_detect import detect_tech
+from vuln_modules.clickjacking import check_clickjacking
 
 app = FastAPI()
 
@@ -37,6 +37,3 @@ async def scan(url: str):
         }
     except Exception as e:
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
