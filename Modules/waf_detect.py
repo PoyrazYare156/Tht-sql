@@ -1,1 +1,0 @@
-def detect_waf(url): return 'Not implemented'

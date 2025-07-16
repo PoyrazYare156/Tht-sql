@@ -1,1 +1,0 @@
-def test_xss(url): return 'Not implemented'
