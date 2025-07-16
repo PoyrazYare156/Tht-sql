@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-cloudscraper
-requests
-Jinja2
-python-multipart
