@@ -2,34 +2,34 @@ function getExplanation(type, data) {
   const explanations = {
     sql_injection: {
       safe: "Bu site SQL enjeksiyonuna karşı güvenli.",
-      vulnerable: "Bu site kullanıcıdan alınan veriyi filtrelemeden veritabanında kullandığı için SQL enjeksiyon açığına sahip."
+      vulnerable: "Veri tabanı sorguları filtrelenmediği için SQL açığı olabilir."
     },
     xss: {
       safe: "XSS açığına karşı güvenli.",
-      vulnerable: "Kullanıcıdan gelen veriler yeterince filtrelenmiyor. Bu durum zararlı script çalışmasına yol açabilir."
+      vulnerable: "Kullanıcı girdileri filtrelenmediği için XSS açığı olabilir."
     },
     waf: {
-      not_detected: "WAF (Web Application Firewall) bulunamadı.",
-      detected: "Muhtemelen bir WAF (Web Application Firewall) tespit edildi."
+      not_detected: "WAF tespit edilmedi.",
+      detected: "Bir WAF tespit edildi. Güvenlik duvarı olabilir."
     },
     open_redirect: {
-      safe: "Açık yönlendirme problemi bulunamadı.",
-      vulnerable: "Kötü niyetli yönlendirme yapılabilir. Bu kullanıcıyı başka bir siteye yönlendirerek kandırabilir."
+      safe: "Açık yönlendirme yok.",
+      vulnerable: "Kullanıcı başka siteye yönlendirilebilir."
     },
     cors: {
-      safe: "CORS politikası düzgün yapılandırılmış.",
-      vulnerable: "CORS ayarları uygun değil. Yetkisiz siteler veri çekebilir."
+      safe: "CORS ayarları güvenli.",
+      vulnerable: "CORS açığı olabilir. Diğer siteler veri çekebilir."
     },
     ssl: {
       valid: "SSL sertifikası geçerli.",
-      invalid: "SSL sertifikası geçersiz veya yok. Bağlantı güvenli değil."
+      invalid: "SSL sertifikası geçersiz."
     },
     clickjacking: {
       safe: "Clickjacking'e karşı korumalı.",
-      vulnerable: "X-Frame-Options header'ı eksik. Site iframe içinde açılabiliyor."
+      vulnerable: "X-Frame-Options eksik. iframe ile istismar edilebilir."
     },
     tech: {
-      default: "Sunucu teknolojileri listelendi."
+      default: "Sunucu teknolojileri tespit edildi."
     }
   };
 
