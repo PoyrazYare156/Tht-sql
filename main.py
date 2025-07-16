@@ -14,16 +14,13 @@ from modules.clickjacking import check_clickjacking
 
 app = FastAPI()
 
-# Statik dosyalar ve HTML şablonları
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# Ana sayfa
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# Taramayı başlat
 @app.get("/scan")
 async def scan(url: str):
     try:
