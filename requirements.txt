@@ -1,4 +1,6 @@
 fastapi
 uvicorn
-requests
 cloudscraper
+requests
+Jinja2
+python-multipart
