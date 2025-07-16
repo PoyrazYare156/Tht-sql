@@ -2,64 +2,22 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Gelişmiş Açık Taraması</title>
+  <title>Gelişmiş Güvenlik Taraması</title>
   <script src="/static/app.js" defer></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
-    h1 {
-      color: #222;
-    }
-
-    #targetUrl {
-      width: 300px;
-      padding: 8px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 8px 12px;
-      font-weight: bold;
-      background-color: #008cba;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    .result-box {
-      margin-top: 20px;
-    }
-
-    .vuln-item {
-      margin-bottom: 15px;
-      padding: 10px;
-      border-radius: 5px;
-    }
-
-    .safe {
-      background-color: #e0ffe0;
-      border: 1px solid #4CAF50;
-    }
-
-    .vulnerable {
-      background-color: #ffe0e0;
-      border: 1px solid #f44336;
-    }
-
-    .not-detected {
-      background-color: #ffffcc;
-      border: 1px solid #ffc107;
-    }
+    body { font-family: sans-serif; padding: 20px; }
+    input { width: 300px; padding: 5px; }
+    button { padding: 5px 10px; }
+    .safe { color: green; }
+    .vulnerable { color: red; }
+    .not-detected { color: gray; }
+    .vuln-item { margin-bottom: 10px; }
   </style>
 </head>
 <body>
-  <h1>🔐 Gelişmiş Açık Taraması</h1>
+  <h2>🔐 Gelişmiş Açık Taraması</h2>
   <input type="text" id="targetUrl" placeholder="https://example.com">
   <button onclick="scanVulnerabilities()">TARAMAYI BAŞLAT</button>
-  
-  <div id="vulnResults" class="result-box"></div>
+  <div id="vulnResults"></div>
 </body>
 </html>
