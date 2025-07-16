@@ -1,0 +1,1 @@
+def test_open_redirect(url): return 'Not implemented'
