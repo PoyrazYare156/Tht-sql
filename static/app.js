@@ -9,8 +9,8 @@ function getExplanation(type, data) {
       vulnerable: "Kullanıcıdan gelen veriler yeterince filtrelenmiyor. Bu durum zararlı script çalışmasına yol açabilir."
     },
     waf: {
-      "not_detected": "WAF (Web Application Firewall) bulunamadı.",
-      "detected": "Muhtemelen bir WAF (Web Application Firewall) tespit edildi."
+      not_detected: "WAF (Web Application Firewall) bulunamadı.",
+      detected: "Muhtemelen bir WAF (Web Application Firewall) tespit edildi."
     },
     open_redirect: {
       safe: "Açık yönlendirme problemi bulunamadı.",
@@ -34,8 +34,7 @@ function getExplanation(type, data) {
   };
 
   const val = data.status || data.server || "default";
-  const expl = explanations[type]?.[val] || explanations[type]?.default || "Bilgi yok.";
-  return expl;
+  return explanations[type]?.[val] || explanations[type]?.default || "Bilgi yok.";
 }
 
 async function scanVulnerabilities() {
