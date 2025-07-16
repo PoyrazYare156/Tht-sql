@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -15,13 +14,17 @@ from modules.tech_detect import detect_tech
 from modules.clickjacking import check_clickjacking
 
 app = FastAPI()
+
+# Statik dosyalar ve HTML şablonları
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# Ana sayfa
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+# Taramayı başlat
 @app.get("/scan")
 async def scan(url: str):
     try:
@@ -38,5 +41,6 @@ async def scan(url: str):
     except Exception as e:
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
 
+# Uygulamayı başlat
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    uvicorn.run("ana:app", host="0.0.0.0", port=10000)
