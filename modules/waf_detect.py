@@ -1,53 +1,46 @@
 
 import requests
 
-COMMON_WAF_SIGNATURES = {
-    "Cloudflare": ["cloudflare"],
-    "Akamai": ["akamai", "akamai-ghost"],
-    "Sucuri": ["sucuri"],
-    "AWS WAF": ["aws", "waf"],
-    "Imperva Incapsula": ["incap", "incapsula"],
-    "F5 BIG-IP": ["bigip", "f5"],
-    "Barracuda": ["barracuda"],
-    "StackPath": ["stackpath"],
-    "DDoS-Guard": ["ddos-guard"],
-    "Microsoft Azure": ["azure", "frontdoor"],
+COMMON_WAF_PATTERNS = {
+    "cloudflare": ["cloudflare", "__cfduid", "cf-ray"],
+    "sucuri": ["sucuri", "x-sucuri"],
+    "aws": ["aws", "x-amz"],
+    "akamai": ["akamai", "akamai-reputation"],
+    "imperva": ["imperva", "incapsula"],
+    "f5": ["bigip", "f5-"],
+    "barikode": ["barracuda"],
 }
 
 def detect_waf(url):
+    result = {
+        "status": "not_detected",
+        "explanation": "Herhangi bir WAF tespit edilmedi.",
+        "server": None
+    }
+
     try:
-        test_payload = "' OR 1=1 --"
-        target_url = f"{url}?test={test_payload}"
+        payload = "' OR 1=1 --"
+        test_url = f"{url}?test={payload}"
+        headers = {"User-Agent": "Mozilla/5.0 (XSSScanner)"}
 
-        headers = {
-            "User-Agent": "Mozilla/5.0 (compatible; WAFScanner/1.0)",
-            "X-Scanner-Test": "WAF-Test"
-        }
+        response = requests.get(test_url, headers=headers, timeout=5)
+        result["server"] = response.headers.get("Server", "N/A")
 
-        response = requests.get(target_url, headers=headers, timeout=8)
-        server_header = response.headers.get("Server", "").lower()
-        via_header = response.headers.get("Via", "").lower()
-        content = response.text.lower()
+        # HTTP yanıt kodu şüpheli mi?
+        if response.status_code in [403, 406, 501]:
+            result["status"] = "detected"
+            result["explanation"] = f"HTTP {response.status_code} ile WAF şüphesi var."
+            return result
 
-        matched = []
+        # Başlıklardan WAF izi arama
+        combined_headers = " ".join(response.headers.keys()).lower()
+        for waf_name, patterns in COMMON_WAF_PATTERNS.items():
+            if any(p in combined_headers for p in patterns):
+                result["status"] = "detected"
+                result["explanation"] = f"{waf_name.upper()} WAF tespit edildi."
+                return result
 
-        for waf, signatures in COMMON_WAF_SIGNATURES.items():
-            if any(sig in server_header or sig in via_header or sig in content for sig in signatures):
-                matched.append(waf)
+    except requests.RequestException as e:
+        result["explanation"] = f"Hata: {str(e)}"
 
-        if matched:
-            return {
-                "status": "detected",
-                "explanation": f"WAF tespit edildi: {', '.join(matched)}"
-            }
-        else:
-            return {
-                "status": "not_detected",
-                "explanation": "Herhangi bir WAF tespit edilmedi."
-            }
-
-    except Exception as e:
-        return {
-            "status": "unknown",
-            "explanation": f"WAF taraması sırasında hata oluştu: {str(e)}"
-        }
+    return result
