@@ -17,6 +17,7 @@ from modules.clickjacking import check_clickjacking
 from modules.csrf_check import check_csrf
 from modules.lfi_rfi_check import check_lfi_rfi
 from modules.directory_traversal import check_directory_traversal
+from modules.admin_panel_finder import find_admin_panel
 
 # Uygulama tanımı
 app = FastAPI(
@@ -71,6 +72,7 @@ async def vuln_scan(url: str = Query(..., description="Taranacak hedef URL")):
             "csrf": check_csrf(url),
             "lfi_rfi": check_lfi_rfi(url),
             "directory_traversal": check_directory_traversal(url),
+            "admin_panel": find_admin_panel(url),
         }
 
         logger.info(f"Tarama tamamlandı: {url}")
