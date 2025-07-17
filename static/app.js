@@ -1,4 +1,45 @@
 
+async function scanVulnerabilities() {
+  const url = document.getElementById("targetUrl").value.trim();
+  if (!url) {
+    alert("Lütfen bir URL girin.");
+    return;
+  }
+
+  const resultsDiv = document.getElementById("vulnResults");
+  resultsDiv.innerHTML = "<p>🔍 Taranıyor...</p>";
+
+  try {
+    const response = await fetch(`/api/vulnscan?url=${encodeURIComponent(url)}`);
+    const data = await response.json();
+
+    resultsDiv.innerHTML = "<h3>🛡️ Sonuçlar:</h3>";
+
+    Object.entries(data).forEach(([vulnType, vulnData]) => {
+      const status = vulnData.status || vulnData.result || vulnData.server || vulnData.error || "unknown";
+      const explanation = getExplanation(vulnType, vulnData);
+      let className = "error";
+
+      if (["safe", "valid", "not_found", "disabled", "present"].includes(status)) className = "safe";
+      else if (["vulnerable", "invalid", "found", "enabled", "missing"].includes(status)) className = "vulnerable";
+
+      resultsDiv.innerHTML += `
+        <div class="vuln-item ${className}">
+          <strong>${vulnType.toUpperCase()}</strong><br>
+          Durum: <code>${status}</code><br>
+          Açıklama: <em>${explanation}</em>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    resultsDiv.innerHTML = `<div class="vuln-item error">
+      <strong>HATA</strong><br>
+      <code>${err.message}</code>
+    </div>`;
+  }
+}
+
 function getExplanation(type, data) {
   const explanations = {
     sql_injection: {
@@ -35,56 +76,55 @@ function getExplanation(type, data) {
     },
     lfi_rfi: {
       safe: "LFI/RFI açığı bulunamadı.",
-      vulnerable: "LFI veya RFI açığı bulundu. Dosya dahil etme yoluyla sistem tehlikeye atılabilir."
+      vulnerable: "Dosya dahil etme yoluyla sistem tehlikeye atılabilir."
     },
     directory_traversal: {
-  safe: "Directory Traversal açığı tespit edilmedi.",
-  vulnerable: "Klasör geçiş açığı bulundu. Sunucu dosyasına erişilebiliyor."
-},
-  admin_panel: {
-  found: "Yönetim paneli bulundu. Yetkisiz erişim riski olabilir.",
-  not_found: "Yönetim paneli tespit edilemedi."
-},
-  crlf: {
-  safe: "CRLF Injection açığı tespit edilmedi.",
-  vulnerable: "CRLF Injection açığı bulundu! Header'a veri enjekte edilebiliyor.",
-  error: "CRLF testi sırasında hata oluştu."
-},
+      safe: "Directory Traversal açığı tespit edilmedi.",
+      vulnerable: "Klasör geçiş açığı bulundu. Sunucu dosyasına erişilebiliyor."
+    },
+    admin_panel: {
+      found: "Yönetim paneli bulundu. Yetkisiz erişim riski olabilir.",
+      not_found: "Yönetim paneli tespit edilemedi."
+    },
+    crlf: {
+      safe: "CRLF Injection açığı tespit edilmedi.",
+      vulnerable: "Header'a veri enjekte edilebiliyor!",
+      error: "CRLF testi sırasında hata oluştu."
+    },
     directory_listing: {
-  safe: "Directory Listing açığı bulunamadı.",
-  vulnerable: "Sunucu dizin içeriği listeleniyor!",
-  error: "Directory Listing kontrolü sırasında hata oluştu."
-},
+      safe: "Directory Listing açığı bulunamadı.",
+      vulnerable: "Sunucu dizin içeriği listeleniyor!",
+      error: "Directory Listing kontrolü sırasında hata oluştu."
+    },
     host_header: {
-  safe: "Host Header Injection açığı bulunamadı.",
-  vulnerable: "Host başlığı filtrelenmiyor. Bu, yönlendirme veya veri sızmasına neden olabilir.",
-  error: "Host Header kontrolü sırasında hata oluştu."
-},
+      safe: "Host Header Injection bulunamadı.",
+      vulnerable: "Host başlığı filtrelenmiyor.",
+      error: "Host Header kontrolü sırasında hata oluştu."
+    },
     csp: {
-  present: "CSP başlığı mevcut. XSS'e karşı ek bir koruma sağlar.",
-  missing: "CSP başlığı eksik. Bu durum XSS riskini artırabilir.",
-  error: "CSP kontrolü sırasında hata oluştu."
-},
+      present: "CSP başlığı mevcut. XSS'e karşı ek bir koruma sağlar.",
+      missing: "CSP başlığı eksik. Bu durum XSS riskini artırabilir.",
+      error: "CSP kontrolü sırasında hata oluştu."
+    },
     subdomain_takeover: {
-  safe: "Alt alan adı takeover riskine karşı güvenli.",
-  vulnerable: "Subdomain takeover riski tespit edildi!",
-  error: "Alt alan adı kontrolü sırasında hata oluştu."
-},
+      safe: "Alt alan adı takeover riskine karşı güvenli.",
+      vulnerable: "Subdomain takeover riski tespit edildi!",
+      error: "Alt alan adı kontrolü sırasında hata oluştu."
+    },
     dir_listing: {
-  enabled: "Dizin listeleme aktif. Kötü niyetli kişiler sistem yapınızı görebilir.",
-  disabled: "Dizin listeleme kapalı. Bu, iyi bir güvenlik önlemidir."
-},
+      enabled: "Dizin listeleme aktif. Saldırganlar sistem içeriğini görebilir.",
+      disabled: "Dizin listeleme kapalı."
+    },
     subdomains: {
-  found: "Alt alan adları bulundu. Bu, saldırganlar için keşif fırsatı sunabilir.",
-  not_found: "Alt alan adı bulunamadı. Bu, saldırı yüzeyini daraltır."
-},
-admin_panels: {
-  found: "Yönetici paneli erişilebilir durumda. Erişim yetkilendirmesi kontrol edilmelidir.",
-  not_found: "Yönetici paneli tespit edilemedi. Bu, güvenlik açısından olumludur."
-},
-    
+      found: "Alt alan adları bulundu.",
+      not_found: "Alt alan adı bulunamadı."
+    },
+    admin_panels: {
+      found: "Yönetici paneli erişilebilir durumda.",
+      not_found: "Yönetici paneli tespit edilemedi."
+    }
   };
 
-  const val = data.status || data.server || "default";
+  const val = data.status || data.result || data.server || "default";
   return explanations[type]?.[val] || "Açıklama bulunamadı.";
 }
