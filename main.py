@@ -24,6 +24,8 @@ from modules.host_header import check_host_header_injection
 from modules.csp_check import check_csp
 from modules.subdomain_takeover import check_subdomain_takeover
 from modules.dir_listing_check import check_directory_listing
+from modules.subdomain_enum import scan_subdomains
+from modules.admin_panel_check import check_admin_panel
 
 # Uygulama tanımı
 app = FastAPI(
@@ -85,6 +87,8 @@ async def vuln_scan(url: str = Query(..., description="Taranacak hedef URL")):
             "csp": check_csp(url),
             "subdomain_takeover": check_subdomain_takeover(url),
             "directory_listing": check_directory_listing(url),
+            "subdomains": scan_subdomains(url.replace("https://", "").replace("http://", "").split("/")[0]),
+            "admin_panels": check_admin_panel(url),
             
         }
 
