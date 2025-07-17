@@ -1,69 +1,67 @@
 
 import requests
+from urllib.parse import urlparse, parse_qs, urlencode
 import time
-from bs4 import BeautifulSoup
+
+error_payloads = [
+    "'",
+    "\"",
+    "' OR '1'='1",
+    "\" OR \"1\"=\"1",
+    "' OR 1=1--",
+    "'; WAITFOR DELAY '0:0:5'--"
+]
+
+sql_errors = [
+    "you have an error in your sql syntax",
+    "warning: mysql",
+    "unclosed quotation mark",
+    "quoted string not properly terminated",
+    "SQLSTATE",
+    "ORA-01756",
+    "System.Data.SqlClient.SqlException"
+]
 
 def scan_sql_injection(url):
-    result = {
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query)
+
+    if not query:
+        return {"status": "info", "explanation": "Test edilecek parametre bulunamadı."}
+
+    for param in query:
+        for payload in error_payloads:
+            test_params = query.copy()
+            test_params[param] = payload
+            test_query = urlencode(test_params, doseq=True)
+            test_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}?{test_query}"
+
+            try:
+                start = time.time()
+                response = requests.get(test_url, timeout=7)
+                duration = time.time() - start
+
+                body = response.text.lower()
+                if any(error in body for error in sql_errors):
+                    return {
+                        "status": "vulnerable",
+                        "explanation": "SQL hatası döndü. Enjeksiyon açığı mevcut olabilir.",
+                        "payload": payload,
+                        "type": "error-based"
+                    }
+
+                if duration > 4.5:  # Time-based SQLi
+                    return {
+                        "status": "vulnerable",
+                        "explanation": "Sunucu geç yanıt verdi. Time-based SQL enjeksiyonu olabilir.",
+                        "payload": payload,
+                        "type": "time-based"
+                    }
+
+            except requests.RequestException:
+                continue
+
+    return {
         "status": "safe",
-        "explanation": "SQL enjeksiyonu tespit edilmedi."
+        "explanation": "SQL enjeksiyonuna karşı güvenli."
     }
-
-    payloads = [
-        "'", "\"", "`", "OR 1=1", "' OR '1'='1", "1 AND 1=1", "' AND SLEEP(5)--"
-    ]
-    error_signatures = [
-        "you have an error in your sql syntax",
-        "unclosed quotation mark",
-        "quoted string not properly terminated",
-        "sqlstate",
-        "syntax error"
-    ]
-
-    try:
-        # Test GET parametreleri
-        if "?" in url:
-            base, params = url.split("?", 1)
-            pairs = params.split("&")
-            for payload in payloads:
-                for i in range(len(pairs)):
-                    key, _ = pairs[i].split("=")
-                    test_pairs = pairs.copy()
-                    test_pairs[i] = f"{key}={payload}"
-                    test_url = base + "?" + "&".join(test_pairs)
-
-                    start = time.time()
-                    r = requests.get(test_url, timeout=8)
-                    if time.time() - start > 5:
-                        return {"status": "vulnerable", "explanation": "Zaman temelli SQL Injection (Time-Based)."}
-
-                    if any(err in r.text.lower() for err in error_signatures):
-                        return {"status": "vulnerable", "explanation": "Hata mesajı döndü, SQL Injection ihtimali yüksek."}
-
-        # Test POST formları
-        r = requests.get(url, timeout=10)
-        soup = BeautifulSoup(r.text, "lxml")
-        forms = soup.find_all("form")
-
-        for form in forms:
-            action = form.get("action") or url
-            post_url = action if action.startswith("http") else url + action
-            method = form.get("method", "get").lower()
-            inputs = form.find_all("input")
-            data = {}
-
-            for input_tag in inputs:
-                name = input_tag.get("name")
-                if not name:
-                    continue
-                data[name] = payloads[0]
-
-            if method == "post":
-                post_r = requests.post(post_url, data=data, timeout=10)
-                if any(err in post_r.text.lower() for err in error_signatures):
-                    return {"status": "vulnerable", "explanation": "POST formu üzerinden SQL Injection bulundu."}
-
-    except Exception as e:
-        return {"status": "error", "explanation": f"SQL Injection taramasında hata oluştu: {e}"}
-
-    return result
