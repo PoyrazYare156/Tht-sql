@@ -49,7 +49,12 @@ function getExplanation(type, data) {
   safe: "CRLF Injection açığı tespit edilmedi.",
   vulnerable: "CRLF Injection açığı bulundu! Header'a veri enjekte edilebiliyor.",
   error: "CRLF testi sırasında hata oluştu."
-}
+},
+    directory_listing: {
+  safe: "Directory Listing açığı bulunamadı.",
+  vulnerable: "Sunucu dizin içeriği listeleniyor!",
+  error: "Directory Listing kontrolü sırasında hata oluştu."
+},
     
   };
 
