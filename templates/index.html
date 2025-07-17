@@ -3,53 +3,53 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gelişmiş Güvenlik Taraması</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔐 Gelişmiş Güvenlik Taraması</title>
   <script src="/static/app.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f9f9f9;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
+      padding: 20px;
+      background: #f5f7fa;
+      color: #333;
     }
 
     h1 {
-      color: #333;
-      font-size: 22px;
-      margin-bottom: 20px;
       text-align: center;
+      color: #222;
     }
 
-    .scan-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
 
     input[type="text"] {
       width: 100%;
-      max-width: 500px;
       padding: 10px;
-      margin-bottom: 10px;
+      margin-top: 10px;
       font-size: 16px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 8px;
     }
 
     button {
-      padding: 10px 20px;
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
       font-size: 16px;
-      cursor: pointer;
-      border: none;
       background-color: #007bff;
-      color: white;
-      border-radius: 4px;
-      transition: background-color 0.3s;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s ease;
     }
 
     button:hover {
@@ -58,53 +58,130 @@
 
     .vuln-item {
       border: 1px solid #ddd;
-      padding: 15px;
       margin-top: 15px;
-      border-radius: 5px;
-      width: 100%;
-      max-width: 600px;
-      word-wrap: break-word;
+      padding: 15px;
+      border-radius: 8px;
     }
 
-    .vuln-item.safe {
-      background-color: #e8fce8;
-      border-left: 5px solid green;
+    .safe {
+      background-color: #e6ffed;
+      border-left: 5px solid #28a745;
     }
 
-    .vuln-item.vulnerable {
+    .vulnerable {
       background-color: #ffeaea;
-      border-left: 5px solid red;
+      border-left: 5px solid #dc3545;
     }
 
-    .vuln-item.error {
+    .error {
       background-color: #fff3cd;
-      border-left: 5px solid orange;
+      border-left: 5px solid #ffc107;
     }
 
-    code {
-      background-color: #eee;
-      padding: 2px 4px;
-      border-radius: 3px;
+    #downloadPdf {
+      margin-top: 15px;
+      background-color: #28a745;
     }
 
-    em {
-      color: #555;
-    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
 
-    #vulnResults {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      h1 {
+        font-size: 22px;
+      }
+
+      button {
+        font-size: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🔒 Gelişmiş Açık Taraması</h1>
-  <div class="scan-container">
-    <input type="text" id="targetUrl" placeholder="https://example.com" />
+  <div class="container">
+    <h1>🔍 Güvenlik Açığı Taraması</h1>
+    <input type="text" id="targetUrl" placeholder="https://ornek.com" />
     <button onclick="scanVulnerabilities()">TARAMAYI BAŞLAT</button>
+    <button id="downloadPdf">📄 PDF OLARAK İNDİR</button>
+    <div id="vulnResults"></div>
   </div>
-  <div id="vulnResults"></div>
+
+  <script>
+    async function scanVulnerabilities() {
+      const url = document.getElementById("targetUrl").value;
+      const response = await fetch(`/api/vulnscan?url=${encodeURIComponent(url)}`);
+      const data = await response.json();
+
+      const resultsDiv = document.getElementById("vulnResults");
+      resultsDiv.innerHTML = "<h3>🔎 Taramalar:</h3>";
+
+      for (let vuln in data) {
+        const status = data[vuln].status || data[vuln];
+        let className = "error";
+        if (status === "safe" || status === "valid" || status === "not_found") className = "safe";
+        else if (status === "vulnerable" || status === "invalid" || status === "found") className = "vulnerable";
+
+        const explanation = getExplanation(vuln, data[vuln]);
+        resultsDiv.innerHTML += `
+          <div class="vuln-item ${className}">
+            <strong>${vuln.toUpperCase()}</strong><br/>
+            <small><b>Durum:</b> ${JSON.stringify(data[vuln])}</small><br/>
+            <em>${explanation}</em>
+          </div>
+        `;
+      }
+    }
+
+    function getExplanation(type, data) {
+      const explanations = {
+        sql_injection: {
+          safe: "SQL enjeksiyonuna karşı güvenli.",
+          vulnerable: "Kullanıcı girdisi filtrelenmeden veritabanında kullanılıyor."
+        },
+        xss: {
+          safe: "XSS açığına karşı güvenli.",
+          vulnerable: "Zararlı script çalıştırılmasına karşı savunmasız."
+        },
+        waf: {
+          not_detected: "WAF bulunamadı.",
+          detected: "WAF tespit edildi."
+        },
+        open_redirect: {
+          safe: "Yönlendirme açığı yok.",
+          vulnerable: "Kullanıcı kötü amaçlı yönlendirilebilir."
+        },
+        cors: {
+          safe: "CORS ayarları güvenli.",
+          vulnerable: "Yanlış yapılandırılmış CORS başlığı mevcut."
+        },
+        ssl: {
+          valid: "SSL sertifikası geçerli.",
+          invalid: "SSL sertifikası eksik/geçersiz."
+        },
+        tech: {
+          success: "Sunucu teknolojileri listelendi.",
+          error: "Sunucu teknolojileri alınamadı."
+        },
+        clickjacking: {
+          safe: "Clickjacking'e karşı korumalı.",
+          vulnerable: "Clickjacking açığı mevcut."
+        }
+        // Genişletilebilir...
+      };
+
+      const val = data.status || data.server || "default";
+      return explanations[type]?.[val] || "Açıklama yok.";
+    }
+
+    document.getElementById("downloadPdf").addEventListener("click", () => {
+      const results = document.getElementById("vulnResults").innerText;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(12);
+      doc.text(results, 10, 10);
+      doc.save("tarama_sonuclari.pdf");
+    });
+  </script>
 </body>
 </html>
