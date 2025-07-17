@@ -4,30 +4,26 @@ import requests
 def check_clickjacking(url):
     try:
         response = requests.get(url, timeout=5)
-        x_frame_options = response.headers.get("X-Frame-Options")
-        csp = response.headers.get("Content-Security-Policy", "")
+        headers = response.headers
 
-        if x_frame_options:
-            return {
-                "status": "safe",
-                "header": x_frame_options,
-                "explanation": "X-Frame-Options başlığı tanımlanmış."
-            }
-        
-        if "frame-ancestors" in csp:
-            return {
-                "status": "safe",
-                "header": csp,
-                "explanation": "CSP üzerinden frame-ancestors tanımı yapılmış."
-            }
+        if "X-Frame-Options" in headers or "Content-Security-Policy" in headers:
+            xfo = headers.get("X-Frame-Options", "").lower()
+            csp = headers.get("Content-Security-Policy", "").lower()
+
+            if "deny" in xfo or "sameorigin" in xfo or "frame-ancestors" in csp:
+                return {
+                    "status": "safe",
+                    "explanation": "Clickjacking'e karşı koruma mevcut."
+                }
 
         return {
             "status": "vulnerable",
-            "explanation": "Clickjacking'e karşı koruma bulunamadı. X-Frame-Options veya CSP eksik."
+            "explanation": "X-Frame-Options veya CSP frame-ancestors başlıkları eksik. Clickjacking riski var."
         }
 
-    except requests.RequestException as e:
+    except Exception as e:
         return {
             "status": "error",
-            "explanation": f"İstek sırasında hata oluştu: {str(e)}"
+            "error": str(e),
+            "explanation": "Clickjacking kontrolü sırasında hata oluştu."
         }
