@@ -2,9 +2,17 @@
 import ssl
 import socket
 from urllib.parse import urlparse
-import datetime
+from datetime import datetime
 
 def check_ssl(url):
+    result = {
+        "status": "safe",
+        "explanation": "SSL sertifikası geçerli.",
+        "issuer": None,
+        "valid_until": None,
+        "days_remaining": None
+    }
+
     try:
         parsed_url = urlparse(url)
         hostname = parsed_url.hostname
@@ -15,30 +23,20 @@ def check_ssl(url):
             with context.wrap_socket(sock, server_hostname=hostname) as ssock:
                 cert = ssock.getpeercert()
 
-                # Geçerlilik süresi kontrolü
-                not_after = datetime.datetime.strptime(cert['notAfter'], "%b %d %H:%M:%S %Y %Z")
-                not_before = datetime.datetime.strptime(cert['notBefore'], "%b %d %H:%M:%S %Y %Z")
-                now = datetime.datetime.utcnow()
+        expires = datetime.strptime(cert['notAfter'], "%b %d %H:%M:%S %Y %Z")
+        now = datetime.utcnow()
+        days_remaining = (expires - now).days
 
-                if now > not_after:
-                    return {
-                        "status": "invalid",
-                        "explanation": "SSL sertifikasının süresi dolmuş."
-                    }
+        result["issuer"] = cert['issuer'][0][0][1]
+        result["valid_until"] = expires.strftime("%Y-%m-%d")
+        result["days_remaining"] = days_remaining
 
-                if now < not_before:
-                    return {
-                        "status": "invalid",
-                        "explanation": "SSL sertifikası henüz geçerli değil."
-                    }
-
-                return {
-                    "status": "valid",
-                    "explanation": f"SSL geçerli. Son Geçerlilik: {not_after.strftime('%Y-%m-%d')}"
-                }
+        if days_remaining < 10:
+            result["status"] = "vulnerable"
+            result["explanation"] = f"SSL sertifikasının süresi yaklaşıyor: {days_remaining} gün kaldı."
 
     except Exception as e:
-        return {
-            "status": "invalid",
-            "explanation": f"SSL kontrolü başarısız: {str(e)}"
-        }
+        result["status"] = "invalid"
+        result["explanation"] = f"SSL sertifikası kontrol edilemedi veya geçersiz: {str(e)}"
+
+    return result
