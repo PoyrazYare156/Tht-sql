@@ -1,21 +1,38 @@
 
 import requests
+from urllib.parse import urljoin, urlparse
 
-def scan_open_redirect(url):
-    test_payload = "https://evil.com"
-    redirect_url = f"{url}?next={test_payload}"
+def scan_open_redirect(target_url):
+    payloads = [
+        "https://evil.com", 
+        "//evil.com", 
+        "/\\evil.com"
+    ]
 
-    try:
-        response = requests.get(redirect_url, allow_redirects=False, timeout=5)
-        if response.status_code in [301, 302] and "evil.com" in response.headers.get("Location", ""):
-            return {
-                "status": "vulnerable",
-                "explanation": "Yönlendirme açığı tespit edildi."
-            }
-    except requests.RequestException:
-        pass
+    results = []
+
+    for payload in payloads:
+        try:
+            if "?" in target_url:
+                test_url = f"{target_url}&next={payload}"
+            else:
+                test_url = f"{target_url}?next={payload}"
+
+            response = requests.get(test_url, allow_redirects=False, timeout=5)
+            location = response.headers.get("Location", "")
+
+            if any(evil in location for evil in ["evil.com", "//evil.com"]):
+                return {
+                    "status": "vulnerable",
+                    "explanation": f"Açık yönlendirme tespit edildi: {location}"
+                }
+
+            results.append(location)
+
+        except requests.RequestException as e:
+            continue  # Hatalı URL geçilecek
 
     return {
         "status": "safe",
-        "explanation": "Yönlendirme açığı yok."
+        "explanation": "Yönlendirme açığı tespit edilmedi."
     }
