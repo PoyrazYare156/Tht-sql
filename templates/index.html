@@ -5,6 +5,62 @@
   <meta charset="UTF-8">
   <title>Gelişmiş Güvenlik Taraması</title>
   <script src="/static/app.js" defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    input[type="text"] {
+      width: 400px;
+      padding: 10px;
+      margin-right: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .vuln-item {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 5px;
+    }
+
+    .vuln-item.safe {
+      background-color: #e8fce8;
+      border-left: 5px solid green;
+    }
+
+    .vuln-item.vulnerable {
+      background-color: #ffeaea;
+      border-left: 5px solid red;
+    }
+
+    .vuln-item.error {
+      background-color: #fff3cd;
+      border-left: 5px solid orange;
+    }
+
+    code {
+      background-color: #eee;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    em {
+      color: #555;
+    }
+  </style>
 </head>
 <body>
   <h1>🔒 Gelişmiş Açık Taraması</h1>
