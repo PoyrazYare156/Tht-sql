@@ -1,27 +1,37 @@
+
 import requests
-from urllib.parse import urljoin
 
-def scan_xss(target_url):
-    payload = "<script>alert('xss')</script>"
-    test_param = "xss_test"
-    test_url = f"{target_url}?{test_param}={payload}"
+# Basit XSS payload listesi (Reflected XSS tespiti için)
+XSS_PAYLOADS = [
+    "<script>alert(1)</script>",
+    "\"><script>alert(1)</script>",
+    "<img src=x onerror=alert(1)>",
+    "<svg onload=alert(1)>",
+    "';alert(1);//",
+    "<body onload=alert(1)>"
+]
 
-    try:
-        response = requests.get(test_url, timeout=7)
+def scan_xss(url):
+    results = {
+        "status": "safe",
+        "explanation": "XSS açığı tespit edilmedi. Sayfa gelen veriyi düzgün şekilde filtreliyor.",
+        "payload": None
+    }
 
-        if payload.lower() in response.text.lower():
-            return {
-                "status": "vulnerable",
-                "explanation": "XSS açığı tespit edildi. Kullanıcıdan alınan veri filtrelenmeden geri dönüyor."
-            }
-        else:
-            return {
-                "status": "safe",
-                "explanation": "XSS açığı tespit edilmedi. Sayfa gelen veriyi düzgün şekilde filtreliyor."
-            }
+    for payload in XSS_PAYLOADS:
+        try:
+            # URL parametresi olarak "test" parametresine XSS payload ekleniyor
+            test_url = f"{url}?test={payload}"
+            response = requests.get(test_url, timeout=5)
 
-    except requests.RequestException as e:
-        return {
-            "status": "error",
-            "explanation": f"İstek sırasında hata oluştu: {str(e)}"
-        }
+            # Yanıtta payload'ın yansıması varsa, açık olabilir
+            if payload in response.text:
+                results["status"] = "vulnerable"
+                results["explanation"] = "XSS açığı tespit edildi! Sayfa gönderilen script'i filtrelemiyor."
+                results["payload"] = payload
+                break
+
+        except requests.RequestException:
+            continue
+
+    return results
