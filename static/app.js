@@ -41,6 +41,11 @@ function getExplanation(type, data) {
   safe: "Directory Traversal açığı tespit edilmedi.",
   vulnerable: "Klasör geçiş açığı bulundu. Sunucu dosyasına erişilebiliyor."
 }
+  admin_panel: {
+  found: "Yönetim paneli bulundu. Yetkisiz erişim riski olabilir.",
+  not_found: "Yönetim paneli tespit edilemedi."
+}
+  
   };
 
   const val = data.status || data.server || "default";
