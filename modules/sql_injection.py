@@ -2,59 +2,59 @@
 import requests
 import time
 
-ERROR_PATTERNS = [
-    "you have an error in your sql syntax",
-    "unclosed quotation mark after the character string",
-    "quoted string not properly terminated",
-    "mysql_fetch",
-    "syntax error",
-    "Warning: mysql",
-    "SQLSTATE"
-]
-
-TIME_PAYLOADS = [
-    "' OR SLEEP(5)--",
-    "'; WAITFOR DELAY '0:0:5'--",
-    "' || pg_sleep(5)--",
-]
-
 def scan_sql_injection(url):
     result = {
         "status": "safe",
-        "explanation": "SQL enjeksiyonuna karşı güvenli.",
-        "payload": None,
-        "response_time": None
+        "explanation": "SQL enjeksiyonu tespit edilmedi."
     }
 
+    payloads = [
+        "'", "\"", "`", "OR 1=1", "' OR '1'='1", "\" OR \"1\"=\"1", "1 AND 1=1", "1 AND 1=2", "' AND SLEEP(5)--", "\" AND SLEEP(5)--"
+    ]
+    error_keywords = [
+        "you have an error in your sql syntax",
+        "unclosed quotation mark",
+        "quoted string not properly terminated",
+        "mysql_fetch",
+        "syntax error",
+        "sqlstate"
+    ]
+
     try:
-        # Hata tabanlı payload testleri
-        for payload in ["'", "'\"", "1' OR '1'='1", "' OR 'a'='a"]:
-            test_url = f"{url}?test={payload}"
-            response = requests.get(test_url, timeout=5)
+        for payload in payloads:
+            # Append payload to query param
+            test_url = url
+            if "?" not in url:
+                continue
+            base, params = url.split("?", 1)
+            param_pairs = params.split("&")
+            for i, pair in enumerate(param_pairs):
+                if "=" in pair:
+                    key, _ = pair.split("=", 1)
+                    test_params = param_pairs.copy()
+                    test_params[i] = f"{key}={payload}"
+                    new_url = base + "?" + "&".join(test_params)
+                    
+                    # Time-based test
+                    start = time.time()
+                    r = requests.get(new_url, timeout=7)
+                    elapsed = time.time() - start
 
-            for pattern in ERROR_PATTERNS:
-                if pattern.lower() in response.text.lower():
-                    result["status"] = "vulnerable"
-                    result["explanation"] = "SQL hatası döndü. Enjeksiyon açığı mevcut olabilir."
-                    result["payload"] = payload
-                    return result
+                    if elapsed > 5:
+                        result["status"] = "vulnerable"
+                        result["explanation"] = "Zaman temelli SQL Injection tespit edildi (Time-Based)."
+                        return result
 
-        # Zaman tabanlı (blind SQLi) payload testleri
-        for payload in TIME_PAYLOADS:
-            test_url = f"{url}?id={payload}"
-            start = time.time()
-            requests.get(test_url, timeout=10)
-            end = time.time()
-            elapsed = end - start
+                    # Error-based test
+                    if any(err in r.text.lower() for err in error_keywords):
+                        result["status"] = "vulnerable"
+                        result["explanation"] = "SQL hatası döndü. Enjeksiyon açığı mevcut olabilir."
+                        return result
 
-            if elapsed > 4:  # 5 saniyelik gecikme varsa şüpheli
-                result["status"] = "vulnerable"
-                result["explanation"] = "Zaman tabanlı SQL enjeksiyonu açığı tespit edildi."
-                result["payload"] = payload
-                result["response_time"] = round(elapsed, 2)
-                return result
+        return result
 
-    except requests.RequestException as e:
-        result["explanation"] = f"Hata oluştu: {str(e)}"
-
-    return result
+    except Exception as e:
+        return {
+            "status": "error",
+            "explanation": f"SQL Injection taraması sırasında hata oluştu: {str(e)}"
+        }
