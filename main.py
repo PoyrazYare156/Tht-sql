@@ -20,6 +20,7 @@ from modules.directory_traversal import check_directory_traversal
 from modules.admin_panel_finder import find_admin_panel
 from modules.crlf_check import check_crlf_injection
 from modules.directory_listing import check_directory_listing
+from modules.host_header import check_host_header_injection
 
 # Uygulama tanımı
 app = FastAPI(
@@ -77,6 +78,7 @@ async def vuln_scan(url: str = Query(..., description="Taranacak hedef URL")):
             "admin_panel": find_admin_panel(url),
             "crlf": check_crlf_injection(url),
             "directory_listing": check_directory_listing(url),
+            "host_header": check_host_header_injection(url),
             
         }
 
