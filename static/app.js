@@ -36,11 +36,11 @@ function getExplanation(type, data) {
     lfi_rfi: {
       safe: "LFI/RFI açığı bulunamadı.",
       vulnerable: "LFI veya RFI açığı bulundu. Dosya dahil etme yoluyla sistem tehlikeye atılabilir."
-    }
+    },
     directory_traversal: {
   safe: "Directory Traversal açığı tespit edilmedi.",
   vulnerable: "Klasör geçiş açığı bulundu. Sunucu dosyasına erişilebiliyor."
-}
+},
   admin_panel: {
   found: "Yönetim paneli bulundu. Yetkisiz erişim riski olabilir.",
   not_found: "Yönetim paneli tespit edilemedi."
