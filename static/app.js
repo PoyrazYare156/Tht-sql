@@ -44,8 +44,13 @@ function getExplanation(type, data) {
   admin_panel: {
   found: "Yönetim paneli bulundu. Yetkisiz erişim riski olabilir.",
   not_found: "Yönetim paneli tespit edilemedi."
+},
+  crlf: {
+  safe: "CRLF Injection açığı tespit edilmedi.",
+  vulnerable: "CRLF Injection açığı bulundu! Header'a veri enjekte edilebiliyor.",
+  error: "CRLF testi sırasında hata oluştu."
 }
-  
+    
   };
 
   const val = data.status || data.server || "default";
