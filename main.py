@@ -28,7 +28,7 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    return templates.TemplateResponse("advanced.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/api/vulnscan")
 async def vuln_scan(url: str = Query(...)):
