@@ -37,6 +37,10 @@ function getExplanation(type, data) {
       safe: "LFI/RFI açığı bulunamadı.",
       vulnerable: "LFI veya RFI açığı bulundu. Dosya dahil etme yoluyla sistem tehlikeye atılabilir."
     }
+    directory_traversal: {
+  safe: "Directory Traversal açığı tespit edilmedi.",
+  vulnerable: "Klasör geçiş açığı bulundu. Sunucu dosyasına erişilebiliyor."
+}
   };
 
   const val = data.status || data.server || "default";
