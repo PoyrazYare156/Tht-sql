@@ -55,6 +55,11 @@ function getExplanation(type, data) {
   vulnerable: "Sunucu dizin içeriği listeleniyor!",
   error: "Directory Listing kontrolü sırasında hata oluştu."
 },
+    host_header: {
+  safe: "Host Header Injection açığı bulunamadı.",
+  vulnerable: "Host başlığı filtrelenmiyor. Bu, yönlendirme veya veri sızmasına neden olabilir.",
+  error: "Host Header kontrolü sırasında hata oluştu."
+},
     
   };
 
