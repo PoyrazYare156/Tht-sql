@@ -60,7 +60,11 @@ function getExplanation(type, data) {
   vulnerable: "Host başlığı filtrelenmiyor. Bu, yönlendirme veya veri sızmasına neden olabilir.",
   error: "Host Header kontrolü sırasında hata oluştu."
 },
-    
+    csp: {
+  present: "CSP başlığı mevcut. XSS'e karşı ek bir koruma sağlar.",
+  missing: "CSP başlığı eksik. Bu durum XSS riskini artırabilir.",
+  error: "CSP kontrolü sırasında hata oluştu."
+},
   };
 
   const val = data.status || data.server || "default";
