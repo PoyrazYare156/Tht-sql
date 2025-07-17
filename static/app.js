@@ -65,6 +65,11 @@ function getExplanation(type, data) {
   missing: "CSP başlığı eksik. Bu durum XSS riskini artırabilir.",
   error: "CSP kontrolü sırasında hata oluştu."
 },
+    subdomain_takeover: {
+  safe: "Alt alan adı takeover riskine karşı güvenli.",
+  vulnerable: "Subdomain takeover riski tespit edildi!",
+  error: "Alt alan adı kontrolü sırasında hata oluştu."
+},
   };
 
   const val = data.status || data.server || "default";
