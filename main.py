@@ -15,6 +15,7 @@ from modules.ssl_check import check_ssl
 from modules.tech_detect import detect_tech
 from modules.clickjacking import check_clickjacking
 from modules.csrf_check import check_csrf
+from modules.lfi_rfi_check import check_lfi_rfi
 
 # Uygulama tanımı
 app = FastAPI(
@@ -67,6 +68,7 @@ async def vuln_scan(url: str = Query(..., description="Taranacak hedef URL")):
             "tech": detect_tech(url),
             "clickjacking": check_clickjacking(url),
             "csrf": check_csrf(url),
+            "lfi_rfi": check_lfi_rfi(url),
         }
 
         logger.info(f"Tarama tamamlandı: {url}")
