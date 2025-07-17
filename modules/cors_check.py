@@ -2,42 +2,31 @@
 import requests
 
 def check_cors(url):
+    result = {
+        "status": "safe",
+        "explanation": "CORS yapılandırması güvenli.",
+        "origin": None
+    }
+
+    test_origin = "https://evil.com"
+
     try:
         headers = {
-            "Origin": "https://evil.com",
+            "Origin": test_origin,
             "User-Agent": "Mozilla/5.0"
         }
 
-        response = requests.get(url, headers=headers, timeout=8)
+        response = requests.get(url, headers=headers, timeout=5)
 
-        acao = response.headers.get("Access-Control-Allow-Origin", "")
-        credentials = response.headers.get("Access-Control-Allow-Credentials", "")
+        acao = response.headers.get("Access-Control-Allow-Origin")
+        result["origin"] = acao
 
-        if acao == "*" or "evil.com" in acao.lower():
-            return {
-                "status": "vulnerable",
-                "explanation": f"CORS ayarları zayıf. Allow-Origin: {acao}"
-            }
+        if acao == "*" or acao == test_origin:
+            result["status"] = "vulnerable"
+            result["explanation"] = f"CORS yapılandırması zayıf! `Access-Control-Allow-Origin: {acao}`"
 
-        if acao and credentials.lower() == "true":
-            return {
-                "status": "vulnerable",
-                "explanation": "Allow-Credentials:true ile belirli origin'e açık – bu risklidir."
-            }
+    except requests.RequestException as e:
+        result["status"] = "error"
+        result["explanation"] = f"Hata: {str(e)}"
 
-        if acao:
-            return {
-                "status": "safe",
-                "explanation": f"CORS ayarları yapılandırılmış: Allow-Origin: {acao}"
-            }
-
-        return {
-            "status": "safe",
-            "explanation": "CORS başlığı tanımlı değil, bu da bir güvenlik önlemi olabilir."
-        }
-
-    except Exception as e:
-        return {
-            "status": "unknown",
-            "explanation": f"CORS kontrolü başarısız: {str(e)}"
-        }
+    return result
