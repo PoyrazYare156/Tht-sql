@@ -1,7 +1,7 @@
 
 async function scanVulnerabilities() {
   const url = document.getElementById("targetUrl").value;
-  const response = await fetch(`/scan?url=${encodeURIComponent(url)}`);
+  const response = await fetch(`/api/vulnscan?url=${encodeURIComponent(url)}`);
   const data = await response.json();
 
   const resultsDiv = document.getElementById("vulnResults");
