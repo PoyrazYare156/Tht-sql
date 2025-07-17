@@ -2,31 +2,42 @@
 import requests
 
 def check_cors(url):
-    result = {
-        "status": "safe",
-        "explanation": "CORS yapılandırması güvenli.",
-        "origin": None
-    }
-
-    test_origin = "https://evil.com"
-
     try:
         headers = {
-            "Origin": test_origin,
-            "User-Agent": "Mozilla/5.0"
+            "Origin": "https://evil.com"
         }
-
         response = requests.get(url, headers=headers, timeout=5)
 
-        acao = response.headers.get("Access-Control-Allow-Origin")
-        result["origin"] = acao
+        allow_origin = response.headers.get("Access-Control-Allow-Origin", "")
+        allow_credentials = response.headers.get("Access-Control-Allow-Credentials", "")
 
-        if acao == "*" or acao == test_origin:
-            result["status"] = "vulnerable"
-            result["explanation"] = f"CORS yapılandırması zayıf! `Access-Control-Allow-Origin: {acao}`"
+        if allow_origin == "*" and allow_credentials.lower() == "true":
+            return {
+                "status": "vulnerable",
+                "explanation": "CORS yapılandırması tehlikeli: '*' ile birlikte 'Allow-Credentials: true' kullanılmış."
+            }
+
+        elif allow_origin == "https://evil.com":
+            return {
+                "status": "vulnerable",
+                "explanation": "Kötü amaçlı 'Origin' kabul edildi. CORS güvenlik açığı olabilir."
+            }
+
+        elif allow_origin:
+            return {
+                "status": "safe",
+                "origin": allow_origin,
+                "explanation": "CORS başlığı tanımlanmış ve güvenli şekilde yapılandırılmış."
+            }
+
+        else:
+            return {
+                "status": "safe",
+                "explanation": "CORS başlığı bulunamadı. Bu durum bazı durumlarda güvenli kabul edilir."
+            }
 
     except requests.RequestException as e:
-        result["status"] = "error"
-        result["explanation"] = f"Hata: {str(e)}"
-
-    return result
+        return {
+            "status": "error",
+            "explanation": f"İstek sırasında hata oluştu: {str(e)}"
+        }
