@@ -1,6 +1,7 @@
 
 import requests
 import time
+from bs4 import BeautifulSoup
 
 def scan_sql_injection(url):
     result = {
@@ -9,52 +10,60 @@ def scan_sql_injection(url):
     }
 
     payloads = [
-        "'", "\"", "`", "OR 1=1", "' OR '1'='1", "\" OR \"1\"=\"1", "1 AND 1=1", "1 AND 1=2", "' AND SLEEP(5)--", "\" AND SLEEP(5)--"
+        "'", "\"", "`", "OR 1=1", "' OR '1'='1", "1 AND 1=1", "' AND SLEEP(5)--"
     ]
-    error_keywords = [
+    error_signatures = [
         "you have an error in your sql syntax",
         "unclosed quotation mark",
         "quoted string not properly terminated",
-        "mysql_fetch",
-        "syntax error",
-        "sqlstate"
+        "sqlstate",
+        "syntax error"
     ]
 
     try:
-        for payload in payloads:
-            # Append payload to query param
-            test_url = url
-            if "?" not in url:
-                continue
+        # Test GET parametreleri
+        if "?" in url:
             base, params = url.split("?", 1)
-            param_pairs = params.split("&")
-            for i, pair in enumerate(param_pairs):
-                if "=" in pair:
-                    key, _ = pair.split("=", 1)
-                    test_params = param_pairs.copy()
-                    test_params[i] = f"{key}={payload}"
-                    new_url = base + "?" + "&".join(test_params)
-                    
-                    # Time-based test
+            pairs = params.split("&")
+            for payload in payloads:
+                for i in range(len(pairs)):
+                    key, _ = pairs[i].split("=")
+                    test_pairs = pairs.copy()
+                    test_pairs[i] = f"{key}={payload}"
+                    test_url = base + "?" + "&".join(test_pairs)
+
                     start = time.time()
-                    r = requests.get(new_url, timeout=7)
-                    elapsed = time.time() - start
+                    r = requests.get(test_url, timeout=8)
+                    if time.time() - start > 5:
+                        return {"status": "vulnerable", "explanation": "Zaman temelli SQL Injection (Time-Based)."}
 
-                    if elapsed > 5:
-                        result["status"] = "vulnerable"
-                        result["explanation"] = "Zaman temelli SQL Injection tespit edildi (Time-Based)."
-                        return result
+                    if any(err in r.text.lower() for err in error_signatures):
+                        return {"status": "vulnerable", "explanation": "Hata mesajı döndü, SQL Injection ihtimali yüksek."}
 
-                    # Error-based test
-                    if any(err in r.text.lower() for err in error_keywords):
-                        result["status"] = "vulnerable"
-                        result["explanation"] = "SQL hatası döndü. Enjeksiyon açığı mevcut olabilir."
-                        return result
+        # Test POST formları
+        r = requests.get(url, timeout=10)
+        soup = BeautifulSoup(r.text, "lxml")
+        forms = soup.find_all("form")
 
-        return result
+        for form in forms:
+            action = form.get("action") or url
+            post_url = action if action.startswith("http") else url + action
+            method = form.get("method", "get").lower()
+            inputs = form.find_all("input")
+            data = {}
+
+            for input_tag in inputs:
+                name = input_tag.get("name")
+                if not name:
+                    continue
+                data[name] = payloads[0]
+
+            if method == "post":
+                post_r = requests.post(post_url, data=data, timeout=10)
+                if any(err in post_r.text.lower() for err in error_signatures):
+                    return {"status": "vulnerable", "explanation": "POST formu üzerinden SQL Injection bulundu."}
 
     except Exception as e:
-        return {
-            "status": "error",
-            "explanation": f"SQL Injection taraması sırasında hata oluştu: {str(e)}"
-        }
+        return {"status": "error", "explanation": f"SQL Injection taramasında hata oluştu: {e}"}
+
+    return result
