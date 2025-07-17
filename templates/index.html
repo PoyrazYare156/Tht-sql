@@ -2,69 +2,91 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Gelişmiş Güvenlik Taraması</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔒 Gelişmiş Güvenlik Taraması</title>
   <script src="/static/app.js" defer></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f9f9f9;
+      margin: 0;
+      padding: 40px 20px;
+      background-color: #f4f6f8;
+      color: #333;
+      max-width: 900px;
+      margin: auto;
     }
 
     h1 {
-      color: #333;
+      font-size: 26px;
+      color: #111;
     }
 
     input[type="text"] {
-      width: 400px;
-      padding: 10px;
-      margin-right: 10px;
+      width: 100%;
+      max-width: 500px;
+      padding: 12px;
       font-size: 16px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+      border-radius: 4px;
     }
 
     button {
-      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
       font-size: 16px;
+      border-radius: 4px;
       cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
     }
 
     .vuln-item {
       border: 1px solid #ddd;
+      background-color: white;
       padding: 15px;
       margin-top: 15px;
       border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     }
 
     .vuln-item.safe {
-      background-color: #e8fce8;
       border-left: 5px solid green;
+      background-color: #eafaf1;
     }
 
     .vuln-item.vulnerable {
-      background-color: #ffeaea;
       border-left: 5px solid red;
+      background-color: #ffeaea;
     }
 
     .vuln-item.error {
-      background-color: #fff3cd;
       border-left: 5px solid orange;
+      background-color: #fff6e5;
     }
 
     code {
       background-color: #eee;
-      padding: 2px 4px;
-      border-radius: 3px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
     }
 
     em {
+      display: block;
+      margin-top: 8px;
       color: #555;
     }
   </style>
 </head>
 <body>
-  <h1>🔒 Gelişmiş Açık Taraması</h1>
-  <input type="text" id="targetUrl" placeholder="https://example.com">
+  <h1>🔍 Gelişmiş Web Güvenlik Açığı Taraması</h1>
+  <input type="text" id="targetUrl" placeholder="https://example.com" />
   <button onclick="scanVulnerabilities()">TARAMAYI BAŞLAT</button>
   <div id="vulnResults"></div>
 </body>
