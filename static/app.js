@@ -73,8 +73,16 @@ function getExplanation(type, data) {
     dir_listing: {
   enabled: "Dizin listeleme aktif. Kötü niyetli kişiler sistem yapınızı görebilir.",
   disabled: "Dizin listeleme kapalı. Bu, iyi bir güvenlik önlemidir."
-}
-}
+},
+    subdomains: {
+  found: "Alt alan adları bulundu. Bu, saldırganlar için keşif fırsatı sunabilir.",
+  not_found: "Alt alan adı bulunamadı. Bu, saldırı yüzeyini daraltır."
+},
+admin_panels: {
+  found: "Yönetici paneli erişilebilir durumda. Erişim yetkilendirmesi kontrol edilmelidir.",
+  not_found: "Yönetici paneli tespit edilemedi. Bu, güvenlik açısından olumludur."
+},
+    
   };
 
   const val = data.status || data.server || "default";
