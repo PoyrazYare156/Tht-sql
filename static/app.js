@@ -70,6 +70,11 @@ function getExplanation(type, data) {
   vulnerable: "Subdomain takeover riski tespit edildi!",
   error: "Alt alan adı kontrolü sırasında hata oluştu."
 },
+    dir_listing: {
+  enabled: "Dizin listeleme aktif. Kötü niyetli kişiler sistem yapınızı görebilir.",
+  disabled: "Dizin listeleme kapalı. Bu, iyi bir güvenlik önlemidir."
+}
+}
   };
 
   const val = data.status || data.server || "default";
