@@ -3,43 +3,53 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🔒 Gelişmiş Güvenlik Taraması</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gelişmiş Güvenlik Taraması</title>
   <script src="/static/app.js" defer></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
       margin: 0;
-      padding: 40px 20px;
-      background-color: #f4f6f8;
-      color: #333;
-      max-width: 900px;
-      margin: auto;
     }
 
     h1 {
-      font-size: 26px;
-      color: #111;
+      color: #333;
+      font-size: 22px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .scan-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     input[type="text"] {
       width: 100%;
       max-width: 500px;
-      padding: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
       font-size: 16px;
       border: 1px solid #ccc;
-      margin-bottom: 10px;
       border-radius: 4px;
     }
 
     button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
       background-color: #007bff;
       color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
       border-radius: 4px;
-      cursor: pointer;
+      transition: background-color 0.3s;
     }
 
     button:hover {
@@ -48,46 +58,53 @@
 
     .vuln-item {
       border: 1px solid #ddd;
-      background-color: white;
       padding: 15px;
       margin-top: 15px;
       border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      width: 100%;
+      max-width: 600px;
+      word-wrap: break-word;
     }
 
     .vuln-item.safe {
+      background-color: #e8fce8;
       border-left: 5px solid green;
-      background-color: #eafaf1;
     }
 
     .vuln-item.vulnerable {
-      border-left: 5px solid red;
       background-color: #ffeaea;
+      border-left: 5px solid red;
     }
 
     .vuln-item.error {
+      background-color: #fff3cd;
       border-left: 5px solid orange;
-      background-color: #fff6e5;
     }
 
     code {
       background-color: #eee;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
+      padding: 2px 4px;
+      border-radius: 3px;
     }
 
     em {
-      display: block;
-      margin-top: 8px;
       color: #555;
+    }
+
+    #vulnResults {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
   </style>
 </head>
 <body>
-  <h1>🔍 Gelişmiş Web Güvenlik Açığı Taraması</h1>
-  <input type="text" id="targetUrl" placeholder="https://example.com" />
-  <button onclick="scanVulnerabilities()">TARAMAYI BAŞLAT</button>
+  <h1>🔒 Gelişmiş Açık Taraması</h1>
+  <div class="scan-container">
+    <input type="text" id="targetUrl" placeholder="https://example.com" />
+    <button onclick="scanVulnerabilities()">TARAMAYI BAŞLAT</button>
+  </div>
   <div id="vulnResults"></div>
 </body>
 </html>
